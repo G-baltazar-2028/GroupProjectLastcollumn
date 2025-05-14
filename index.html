@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Canteen Queue System</title>
+  <style>
+    body {
+       background-image: url('download (11).jfif');
+      padding: 20px;
+      color: #333;
+    }
+    h1, h2, h3 {
+      margin-bottom: 10px;
+	  color: white;
+    }
+    input {
+      padding: 8px;
+      margin: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      padding: 7px 12px;
+      margin-left: 5px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .queue-item {
+      background: #fff;
+      padding: 8px 12px;
+      margin-bottom: 6px;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .admin-buttons {
+      margin-top: 5px;
+    }
+    .admin-buttons button {
+      margin-left: 5px;
+      background-color: #28a745;
+    }
+    .admin-buttons button.remove {
+      background-color: #dc3545;
+    }
+    .admin-buttons button:hover {
+      opacity: 0.9;
+    }
+    ol {
+      padding-left: 20px;
+    }
+  </style>
+</head>
+<body>
+
+    <h1>Join the Queue</h1>
+    <input id="name" placeholder="Name">
+    <input id="purpose" placeholder="Purpose">
+    <input id="idnum" placeholder="ID Number">
+    <button onclick="joinQueue()">Join Queue</button>
+
+    <h3>Current Queue</h3>
+    <ol id="queueList"></ol>
+
+    <h3>Admin Panel</h3>
+    <div id="adminPanel"></div>
+
+   <script>
+  let queue = [];
+
+  window.onload = function () {
+    const saved = getCookie("queueData");
+    if (saved) {
+      try {
+        queue = JSON.parse(saved);
+        updateDisplay();
+      } catch (e) {
+        console.error("Invalid cookie data");
+      }
+    }
+  };
+
+  function joinQueue() {
+    const name = document.getElementById('name').value.trim();
+    const purpose = document.getElementById('purpose').value.trim();
+    const id = document.getElementById('idnum').value.trim();
+
+    if (!name || !purpose || !id) {
+      alert("Please fill all fields.");
+      return;
+    }
+
+    const entry = { name, purpose, id };
+    queue.push(entry);
+    updateDisplay();
+    saveData();
+    clearInputs();
+  }
+
+  function updateDisplay() {
+    const queueList = document.getElementById('queueList');
+    const adminPanel = document.getElementById('adminPanel');
+    queueList.innerHTML = '';
+    adminPanel.innerHTML = '';
+
+    queue.forEach((person, index) => {
+      const li = document.createElement('li');
+      li.className = "queue-item";
+      li.textContent = `${person.name} - ${person.purpose}`;
+      queueList.appendChild(li);
+
+      const div = document.createElement('div');
+      div.className = "queue-item";
+
+      const info = document.createElement('span');
+      info.textContent = `${index + 1}. ${person.name} (${person.id}) - ${person.purpose}`;
+      div.appendChild(info);
+
+      const buttons = document.createElement('div');
+      buttons.className = "admin-buttons";
+
+      const serveBtn = document.createElement('button');
+      serveBtn.textContent = 'Serve';
+      serveBtn.onclick = () => {
+        alert(`Serving: ${person.name}`);
+        queue.splice(index, 1);
+        updateDisplay();
+        saveData();
+      };
+
+      const removeBtn = document.createElement('button');
+      removeBtn.textContent = 'Remove';
+      removeBtn.className = 'remove';
+      removeBtn.onclick = () => {
+        if (confirm(`Remove ${person.name} completely?`)) {
+          queue.splice(index, 1);
+          updateDisplay();
+          saveData();
+        }
+      };
+
+      buttons.appendChild(serveBtn);
+      buttons.appendChild(removeBtn);
+      div.appendChild(buttons);
+      adminPanel.appendChild(div);
+    });
+  }
+
+  function clearInputs() {
+    document.getElementById('name').value = '';
+    document.getElementById('purpose').value = '';
+    document.getElementById('idnum').value = '';
+  }
+
+  function saveData() {
+    document.cookie = `queueData=${JSON.stringify(queue)}; path=/; max-age=86400`;
+  }
+
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+  }
+</script>
+
+</body>
+</html>
+
+
